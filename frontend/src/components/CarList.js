@@ -4,6 +4,7 @@ import "./CarList.css"; // Import CSS for styling
 
 const CarList = () => {
   const [cars, setCars] = useState([]);
+  const [bidAmounts, setBidAmounts] = useState({});
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -18,6 +19,26 @@ const CarList = () => {
     fetchCars();
   }, []);
 
+  const handleBidChange = (e, carId) => {
+    setBidAmounts({ ...bidAmounts, [carId]: e.target.value });
+  };
+
+  const handleBidSubmit = async (carId) => {
+    const bidAmount = bidAmounts[carId];
+    if (!bidAmount) {
+      alert("Please enter a bid amount.");
+      return;
+    }
+
+    try {
+      await axios.post(`http://localhost:5000/api/cars/${carId}/bid`, { bid: bidAmount });
+      alert("Bid placed successfully!");
+    } catch (error) {
+      console.error("Error placing bid:", error);
+      alert("Failed to place bid. Please try again.");
+    }
+  };
+
   return (
     <div className="container">
       <h2>Car Listings</h2>
@@ -27,7 +48,13 @@ const CarList = () => {
             <h3>{car.make} {car.model}</h3>
             <p>Year: {car.year}</p>
             <p>Starting Price: ${car.starting_price}</p>
-            <button>Place Bid</button>
+            <input
+              type="number"
+              placeholder="Enter bid amount"
+              value={bidAmounts[car.id] || ""}
+              onChange={(e) => handleBidChange(e, car.id)}
+            />
+            <button onClick={() => handleBidSubmit(car.id)}>Place Bid</button>
           </div>
         ))}
       </div>
